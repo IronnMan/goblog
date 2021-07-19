@@ -33,21 +33,6 @@ type ArticlesFormData struct {
 	Errors      map[string]string
 }
 
-func defaultHandler(w http.ResponseWriter, r *http.Request)  {
-	fmt.Fprint(w, "<h1>Hello, 这里是 goblogAb</h1>")
-}
-
-func aboutHandler(w http.ResponseWriter, r *http.Request)  {
-	fmt.Fprint(w, "此博客是用以记录编程笔记，如您有反馈或建议，请联系 " +
-		"<a href=\"mailto:wenlin42@icloud.com\">wenlin42@icloud.com</a>")
-}
-
-func notFoundHandler(w http.ResponseWriter, r *http.Request)  {
-	w.WriteHeader(http.StatusNotFound)
-	fmt.Fprint(w, "此博客是用以记录编程笔记，如您有反馈或建议，请联系 " +
-		"<a href=\"mailto:wenlin42@icloud.com\">wenlin42@icloud.com</a>")
-}
-
 func articlesShowHandler(w http.ResponseWriter, r *http.Request)  {
 	// 获取 URL 参数
 	id := getRouteVariable("id", r)
@@ -441,9 +426,6 @@ func main() {
 	route.Initialize()
 	router = route.Router
 
-	router.HandleFunc("/", defaultHandler).Methods("GET").Name("home")
-	router.HandleFunc("/about", aboutHandler).Methods("GET").Name("about")
-
 	// 文章详情
 	router.HandleFunc("/articles/{id:[0-9]+}", articlesShowHandler).Methods("GET").Name("articles.show")
 	router.HandleFunc("/articles", articlesIndexHandler).Methods("GET").Name("articles.index")
@@ -452,10 +434,6 @@ func main() {
 	router.HandleFunc("/articles/{id:[0-9]+}/edit", articlesEditHandler).Methods("GET").Name("articles.edit")
 	router.HandleFunc("/articles/{id:[0-9]+}", articlesUpdateHandler).Methods("POST").Name("articles.update")
 	router.HandleFunc("/articles/{id:[0-9]+}/delete", articlesDeleteHandler).Methods("POST").Name("articles.delete")
-
-
-	// 自定义 404 页面
-	router.NotFoundHandler = http.HandlerFunc(notFoundHandler)
 
 	// 中间件：强制内容类型为 HTML
 	router.Use(forceHTMLMiddleware)
