@@ -32,75 +32,6 @@ type ArticlesFormData struct {
 	Errors      map[string]string
 }
 
-func articlesCreateHandler(w http.ResponseWriter, r *http.Request)  {
-	html := `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>创建文章 -- 我的技术博客</title>
-</head>
-<body>
-    <form action="%s?test=data" method="post">
-        <p><input type="text" name="title"></p>
-        <p><textarea name="body" cols="30" rows="10"></textarea></p>
-        <p><button type="submit">提交</button></p>
-    </form>
-</body>
-</html>
-`
-	storeURL, _ := router.Get("articles.store").URL()
-	fmt.Fprintf(w, html, storeURL)
-}
-
-func articlesStoreHandler(w http.ResponseWriter, r *http.Request)  {
-
-	title := r.PostFormValue("title")
-	body := r.PostFormValue("body")
-
-	errors := validateArticleFormData(title, body)
-
-	// 验证标题
-	if title == "" {
-		errors["title"] = "标题不能为空"
-	} else if utf8.RuneCountInString(title) < 3 || utf8.RuneCountInString(title) > 40 {
-		errors["title"] = "标题长度需要介入 3-40"
-	}
-
-	// 验证内容
-	if body == "" {
-		errors["body"] = "内容不能为空"
-	} else if utf8.RuneCountInString(body) < 10 {
-		errors["body"] = "内容长度需要大于或等于 10 个字节"
-	}
-
-	if len(errors) == 0 {
-		lastInsertID, err := saveArticleToDB(title, body)
-		if lastInsertID > 0 {
-			fmt.Fprint(w, "插入成功，ID 为" + strconv.FormatInt(lastInsertID, 10))
-		} else {
-			logger.LogError(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "500 服务器内部错误")
-		}
-	} else {
-
-		storeURL, _ := router.Get("articles.store").URL()
-
-		data := ArticlesFormData{
-			Title: title,
-			Body: body,
-			URL: storeURL,
-			Errors: errors,
-		}
-		tmpl, err := template.ParseFiles("resources/views/articles/create.gohtml")
-		if err != nil {
-			panic(err)
-		}
-
-		tmpl.Execute(w, data)
-	}
-}
-
 func articlesEditHandler(w http.ResponseWriter, r *http.Request)  {
 
 	id := getRouteVariable("id", r)
@@ -347,8 +278,6 @@ func main() {
 	router = bootstrap.SetupRoute()
 
 	// 文章详情
-	router.HandleFunc("/articles/create", articlesCreateHandler).Methods("GET").Name("articles.create")
-	router.HandleFunc("/articles", articlesStoreHandler).Methods("POST").Name("articles.store")
 	router.HandleFunc("/articles/{id:[0-9]+}/edit", articlesEditHandler).Methods("GET").Name("articles.edit")
 	router.HandleFunc("/articles/{id:[0-9]+}", articlesUpdateHandler).Methods("POST").Name("articles.update")
 	router.HandleFunc("/articles/{id:[0-9]+}/delete", articlesDeleteHandler).Methods("POST").Name("articles.delete")
