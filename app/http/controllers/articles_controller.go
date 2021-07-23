@@ -7,6 +7,7 @@ import (
 	"goblog/pkg/logger"
 	"goblog/pkg/route"
 	"goblog/pkg/types"
+	"gorm.io/gorm"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -139,6 +140,43 @@ func (*ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
 		logger.LogError(err)
 
 		tmpl.Execute(w, articles)
+	}
+}
+
+// Delete 删除文章
+func (*ArticlesController) Delete(w http.ResponseWriter, r *http.Request)  {
+
+	id := route.GetRouteVariable("id", r)
+
+	_article, err := article.Get(id)
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// 数据未找到
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprint(w, "404 文章未找到")
+		} else {
+			logger.LogError(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "500 服务器内部错误")
+		}
+	} else {
+		rowsAffected, err := _article.Delete()
+
+		if err != nil {
+			// SQL 错误
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "500 服务器内部错误")
+		} else {
+			if rowsAffected > 0 {
+				indexURL := route.Name2URL("articles.index")
+				http.Redirect(w, r, indexURL, http.StatusNotFound)
+			} else {
+				// Edge casae
+				w.WriteHeader(http.StatusNotFound)
+				fmt.Fprint(w, "404 文章未找到")
+			}
+		}
 	}
 }
 

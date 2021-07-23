@@ -11,7 +11,6 @@ import (
 	"html/template"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -133,57 +132,6 @@ func articlesUpdateHandler(w http.ResponseWriter, r *http.Request)  {
 	}
 }
 
-func articlesDeleteHandler(w http.ResponseWriter, r *http.Request)  {
-
-	id := getRouteVariable("id", r)
-
-	article, err := getArticleById(id)
-
-	if err != nil {
-		if err ==sql.ErrNoRows {
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, "404 文章未找到")
-		} else {
-			logger.LogError(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "500 服务器内部错误")
-		}
-	} else {
-		rowsAffected, err := article.Delete()
-
-		if err != nil {
-			logger.LogError(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "500 服务器内部错误")
-		} else {
-
-			if rowsAffected > 0 {
-				indexURL, _ := router.Get("articles.index").URL()
-				http.Redirect(w, r, indexURL.String(), http.StatusFound)
-			} else {
-				// Edge case
-				w.WriteHeader(http.StatusNotFound)
-				fmt.Fprint(w, "404 文章未找到")
-			}
-		}
-	}
-}
-
-func (a Article) Delete() (rowsAffected int64, err error)  {
-	rs, err := db.Exec("DELETE FROM articles WHERE id = " + strconv.FormatInt(a.ID, 10))
-
-	if err != nil {
-		return 0, err
-	}
-
-	// 删除成功，跳转到文章详情页
-	if n, _ := rs.RowsAffected(); n > 0 {
-		return n, nil
-	}
-
-	return 0, nil
-}
-
 func validateArticleFormData(title string, body string) map[string]string {
 	errors := make(map[string]string)
 
@@ -280,7 +228,6 @@ func main() {
 	// 文章详情
 	router.HandleFunc("/articles/{id:[0-9]+}/edit", articlesEditHandler).Methods("GET").Name("articles.edit")
 	router.HandleFunc("/articles/{id:[0-9]+}", articlesUpdateHandler).Methods("POST").Name("articles.update")
-	router.HandleFunc("/articles/{id:[0-9]+}/delete", articlesDeleteHandler).Methods("POST").Name("articles.delete")
 
 	// 中间件：强制内容类型为 HTML
 	router.Use(forceHTMLMiddleware)
