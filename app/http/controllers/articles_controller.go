@@ -111,16 +111,24 @@ func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "500 服务器内部错误")
 		}
 	} else {
+
+		viewDir := "resources/views"
+
+		files, err := filepath.Glob(viewDir + "/layouts/*.gohtml")
+		logger.LogError(err)
+
+		newFiles := append(files, viewDir + "/articles/show.gohtml")
+
 		// 读取成功，显示文章
 		tmpl, err := template.New("show.gohtml").
 			Funcs(template.FuncMap{
 				"RouteName2URL": route.Name2URL,
 				"Int64ToString": types.Int64ToString,
 			}).
-			ParseFiles("resources/views/articles/show.gohtml")
+			ParseFiles(newFiles...)
 		logger.LogError(err)
 
-		tmpl.Execute(w, article)
+		tmpl.ExecuteTemplate(w, "app", article)
 	}
 }
 
