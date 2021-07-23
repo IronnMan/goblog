@@ -5,6 +5,7 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+	"goblog/app/http/middlewares"
 	"goblog/bootstrap"
 	"goblog/pkg/database"
 	"goblog/pkg/logger"
@@ -229,8 +230,6 @@ func main() {
 	router.HandleFunc("/articles/{id:[0-9]+}/edit", articlesEditHandler).Methods("GET").Name("articles.edit")
 	router.HandleFunc("/articles/{id:[0-9]+}", articlesUpdateHandler).Methods("POST").Name("articles.update")
 
-	// 中间件：强制内容类型为 HTML
-	router.Use(forceHTMLMiddleware)
 
 	// 通过命名路由获取 URL 示例
 	homeURL, _ := router.Get("home").URL()
@@ -238,5 +237,5 @@ func main() {
 	articleURL, _ := router.Get("articles.show").URL("id", "23")
 	fmt.Println("articleURL: ", articleURL)
 
-	http.ListenAndServe(":3000", removeTrailingSlash(router))
+	http.ListenAndServe(":3000", middlewares.RemoveTrailingSlash(router))
 }
