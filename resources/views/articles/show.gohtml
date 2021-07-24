@@ -6,6 +6,7 @@
   <div class="col-md-9 blog-main">
 
     <div class="blog-post bg-white p-5 rounded shadow mb-4">
+
       <h3 class="blog-post-title">{{ .Title }}</h3>
       <p class="blog-post-meta text-secondary">发布于 <a href="" class="font-weight-bold">2021-07-23</a> by <a
                 href="#" class="font-weight-bold">wenlin42</a></p>
@@ -14,10 +15,12 @@
       {{ .Body }}
 
       {{/* 构建删除按钮*/}}
-      {{ $idString := .ID }}
       <form action="{{ RouteName2URL "articles.delete" "id" .GetStringID }}" class="mt-4" method="post">
-        <button type="submit" onclick="return confirm('删除动作不可逆，请确定是否继续')">删除</button>
+        <button type="submit" onclick="return confirm('删除动作不可逆，请确定是否继续')" class="btn btn-outline-danger btn-sm">删除</button>
+        <a href="{{ RouteName2URL "articles.edit" "id" .GetStringID }}" class="btn btn-outline-secondary btn-sm">编辑</a>
       </form>
+
     </div>
+
   </div>
 {{ end }}
