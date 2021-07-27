@@ -2,6 +2,7 @@ package article
 
 import (
 	"goblog/app/models"
+	"goblog/app/models/user"
 	"goblog/pkg/route"
 	"goblog/pkg/types"
 )
@@ -9,8 +10,11 @@ import (
 type Article struct {
 	models.BaseModel
 
-	Title string
-	Body  string
+	Title string `gorm:"type:varchar(255);not null;" valid:"title"`
+	Body  string `gorm:"type:longtext;not null;" valid:"title"`
+
+	UserID uint64 `gorm:"not null;index"`
+	User   user.User
 }
 
 // Link 方法用来生成文章链接
