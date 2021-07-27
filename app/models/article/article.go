@@ -2,7 +2,6 @@ package article
 
 import (
 	"goblog/app/models"
-	"goblog/app/models/user"
 	"goblog/pkg/route"
 	"goblog/pkg/types"
 )
