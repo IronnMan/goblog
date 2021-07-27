@@ -118,14 +118,15 @@ func (ac *ArticlesController) Edit(w http.ResponseWriter, r *http.Request) {
 
 	id := route.GetRouteVariable("id", r)
 
-	article, err := article.Get(id)
+	_article, err := article.Get(id)
 
 	if err != nil {
 		ac.ResponseForSQLError(w, err)
 	} else {
 		// 读取成功，显示比编辑文章表单
 		view.Render(w, view.D{
-			"Article": article,
+			"Article": _article,
+			"Errors": view.D{},
 		}, "articles.edit", "articles._form_field")
 	}
 }
@@ -140,15 +141,12 @@ func (ac *ArticlesController) Update(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ac.ResponseForSQLError(w, err)
 	} else {
-		title := r.PostFormValue("title")
-		body  := r.PostFormValue("body")
+		_article.Title = r.PostFormValue("title")
+		_article.Body  = r.PostFormValue("body")
 
-		errors := validateArticleFormData(title, body)
+		errors := requests.ValidateArticleForm(_article)
 
 		if len(errors) == 0 {
-			// 表单验证通过，更新数据
-			_article.Title = title
-			_article.Body = body
 
 			rowsAffected, err := _article.Update()
 
