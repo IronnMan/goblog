@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"goblog/app/models/user"
 	"goblog/app/requests"
 	"goblog/pkg/auth"
@@ -54,8 +53,9 @@ func (*AuthController) DoRegister(w http.ResponseWriter, r *http.Request) {
 		_user.Create()
 
 		if _user.ID > 0 {
+			// 登陆用户并跳转到首页
+			auth.Login(_user)
 			http.Redirect(w, r, "/", http.StatusFound)
-			fmt.Fprint(w, "注册失败，请联系管理员")
 		}
 	}
 	// 3. 表单不通过 -- 重新显示表单
