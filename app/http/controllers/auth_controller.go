@@ -39,12 +39,15 @@ func (*AuthController) DoRegister(w http.ResponseWriter, r *http.Request) {
 	// 1. 表单规则
 	errs := requests.ValidateRegistrationForm(_user)
 
+
 	if len(errs) > 0 {
 		// 有错误发生，打印数据
 		view.RenderSimple(w, view.D{
 			"Errors": errs,
 			"User":   _user,
 		}, "auth.register")
+
+
 	} else {
 		// 验证通过，创建数据
 		_user.Create()

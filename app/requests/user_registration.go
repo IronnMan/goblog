@@ -1,6 +1,7 @@
 package requests
 
 import (
+	"fmt"
 	"github.com/thedevsaddam/govalidator"
 	"goblog/app/models/user"
 )
@@ -9,11 +10,13 @@ import (
 func ValidateRegistrationForm(data user.User) map[string][]string {
 	// 定制认证规则
 	rules := govalidator.MapData{
-		"name": []string{"required", "alpha_num", "between:3,20"},
-		"email": []string{"required", "min:4", "max:30", "email"},
+		"name": []string{"required", "alpha_num", "between:3,20", "not_exists:users,name"},
+		"email": []string{"required", "min:4", "max:30", "email", "not_exists:users,email"},
 		"password": []string{"required", "min:6"},
 		"password_confirm": []string{"required"},
 	}
+
+	fmt.Println(rules)
 
 	// 定制错误消息
 	messages := govalidator.MapData{
