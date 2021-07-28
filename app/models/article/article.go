@@ -2,6 +2,7 @@ package article
 
 import (
 	"goblog/app/models"
+	"goblog/app/models/user"
 	"goblog/pkg/route"
 	"goblog/pkg/types"
 )
@@ -23,4 +24,9 @@ func (a Article) Link() string  {
 
 func (a Article) GetStringID() string {
 	return types.Uint64ToString(a.ID)
+}
+
+// CreatedAtDate 创建日期
+func (a Article) CreatedAtDate() string {
+	return a.CreatedAt.Format("2006-01-02")
 }
