@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 	"goblog/app/models/user"
 	"goblog/pkg/session"
 	"gorm.io/gorm"
@@ -42,6 +43,7 @@ func Attempt(email string, password string) error {
 		}
 	}
 
+	fmt.Println(_user.ComparePassword(password))
 	// 匹配密码
 	if !_user.ComparePassword(password) {
 		return errors.New("账号不存在或密码错误")

@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"goblog/pkg/logger"
 	"time"
@@ -30,8 +29,6 @@ func initDB() {
 
 	// 准备数据库连接池
 	DB, err = sql.Open("mysql", config.FormatDSN())
-
-	fmt.Println(config.FormatDSN())
 
 	logger.LogError(err)
 

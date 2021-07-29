@@ -1,7 +1,6 @@
 package requests
 
 import (
-	"fmt"
 	"github.com/thedevsaddam/govalidator"
 	"goblog/app/models/user"
 )
@@ -15,8 +14,6 @@ func ValidateRegistrationForm(data user.User) map[string][]string {
 		"password": []string{"required", "min:6"},
 		"password_confirm": []string{"required"},
 	}
-
-	fmt.Println(rules)
 
 	// 定制错误消息
 	messages := govalidator.MapData{

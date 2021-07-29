@@ -26,7 +26,7 @@ type ArticlesFormData struct {
 	Errors      map[string]string
 }
 
-// Sotre 文章创建页面
+// Store 文章创建页面
 func (*ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
 
 	// 初始化数据
@@ -38,7 +38,8 @@ func (*ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
 	}
 
 	errors := requests.ValidateArticleForm(_article)
-	
+	fmt.Println(errors)
+
 	// 检查是否有错误
 	if len(errors) == 0 {
 		// 创建文章
@@ -54,7 +55,7 @@ func (*ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
 		view.Render(w, view.D{
 			"Article": _article,
 			"Errors": errors,
-		}, "articles.create", "articles._from_field")
+		}, "articles.create", "articles._form_field")
 	}
 }
 
@@ -70,7 +71,7 @@ func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 	id := route.GetRouteVariable("id", r)
 
 	// 读取对应的文章数据
-	_article, err := article.Get(id)
+	article, err := article.Get(id)
 
 	// 如果出现错误
 	if err != nil {
@@ -88,27 +89,25 @@ func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 
 		// 读取成功，显示文章
 		view.Render(w, view.D{
-			"Article": _article,
+			"Article": article,
 		}, "articles.show", "articles._article_meta")
 	}
 }
 
 // Index 文章列表页
-func (*ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
+func (ac *ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
 
 	// 获取结果集
-	articles, err := article.GetAll()
+	_articles, err := article.GetAll()
+	logger.LogError(err)
 
 	if err != nil {
 		// 数据库错误
-		logger.LogError(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "500 服务器内部错误")
+		ac.ResponseForSQLError(w, err)
 	} else {
-
 		// 加载模版
 		view.Render(w, view.D{
-			"Articles": articles,
+			"Articles": _articles,
 		}, "articles.index", "articles._article_meta")
 	}
 }
