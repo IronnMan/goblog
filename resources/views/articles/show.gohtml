@@ -9,16 +9,18 @@
 
       <h3 class="blog-post-title">{{ .Article.Title }}</h3>
 
-{{/*      {{ template "article-meta" .Article }}*/}}
+      {{ template "article-meta" .Article }}
 
       <hr>
       {{ .Article.Body }}
 
+      {{ if .CanModifyArticle }}
       {{/* 构建删除按钮*/}}
       <form action="{{ RouteName2URL "articles.delete" "id" .Article.GetStringID }}" class="mt-4" method="post">
         <button type="submit" onclick="return confirm('删除动作不可逆，请确定是否继续')" class="btn btn-outline-danger btn-sm">删除</button>
         <a href="{{ RouteName2URL "articles.edit" "id" .Article.GetStringID }}" class="btn btn-outline-secondary btn-sm">编辑</a>
       </form>
+      {{ end }}
 
     </div>
 
