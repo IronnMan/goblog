@@ -70,7 +70,7 @@ func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 	id := route.GetRouteVariable("id", r)
 
 	// 读取对应的文章数据
-	article, err := article.Get(id)
+	_article, err := article.Get(id)
 
 	// 如果出现错误
 	if err != nil {
@@ -88,7 +88,7 @@ func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 
 		// 读取成功，显示文章
 		view.Render(w, view.D{
-			"Article": article,
+			"Article": _article,
 		}, "articles.show", "articles._article_meta")
 	}
 }
@@ -98,9 +98,6 @@ func (*ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
 
 	// 获取结果集
 	articles, err := article.GetAll()
-
-	// TODO
-	fmt.Println("articles")
 
 	if err != nil {
 		// 数据库错误
