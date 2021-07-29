@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"goblog/pkg/flash"
 	"goblog/pkg/logger"
 	"gorm.io/gorm"
 	"net/http"
@@ -24,4 +25,10 @@ func (bc BaseController) ResponseForSQLError(w http.ResponseWriter, err error) {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, "500 服务器内部错误")
 	}
+}
+
+// ResponseForUnauthorized 处理未授权的访问
+func (bc BaseController) ResponseForUnauthorized(w http.ResponseWriter, r *http.Request) {
+	flash.Warning("未授权操作！")
+	http.Redirect(w, r, "/", http.StatusFound)
 }

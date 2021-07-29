@@ -1,19 +1,15 @@
 package controllers
 
 import (
-	"database/sql"
 	"fmt"
 	"goblog/app/models/article"
 	"goblog/app/policies"
 	"goblog/app/requests"
 	"goblog/pkg/auth"
-	"goblog/pkg/flash"
 	"goblog/pkg/logger"
 	"goblog/pkg/route"
 	"goblog/pkg/view"
-	"gorm.io/gorm"
 	"net/http"
-	"unicode/utf8"
 )
 
 // ArticlesController 文章相关页面
@@ -21,12 +17,6 @@ type ArticlesController struct {
 	BaseController
 }
 
-// ArticlesFormData 创建博文表单数据
-type ArticlesFormData struct {
-	Title, Body string
-	Article     article.Article
-	Errors      map[string]string
-}
 
 // Store 文章创建页面
 func (*ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +25,7 @@ func (*ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
 	currentUser := auth.User()
 	_article := article.Article{
 		Title: r.PostFormValue("title"),
-		Body: r.PostFormValue("body"),
+		Body:  r.PostFormValue("body"),
 		UserID: currentUser.ID,
 	}
 
@@ -68,7 +58,7 @@ func (*ArticlesController) Create(w http.ResponseWriter, r *http.Request)  {
 }
 
 // Show 文章详情页面
-func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
+func (ac *ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 	// 获取 URL 参数
 	id := route.GetRouteVariable("id", r)
 
@@ -77,16 +67,7 @@ func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 
 	// 如果出现错误
 	if err != nil {
-		if err == sql.ErrNoRows {
-			// 数据未找到
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, "404 文章未找到")
-		} else {
-			// 数据库错误
-			logger.LogError(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "500 服务器内部错误")
-		}
+		ac.ResponseForSQLError(w, err)
 	} else {
 
 		// 读取成功，显示文章
@@ -127,8 +108,7 @@ func (ac *ArticlesController) Edit(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// 检查权限
 		if !policies.CanModifyArticle(_article) {
-			flash.Warning("未授权操作！")
-			http.Redirect(w, r, "/", http.StatusFound)
+			ac.ResponseForUnauthorized(w, r)
 		} else {
 			// 读取成功，显示比编辑文章表单
 			view.Render(w, view.D{
@@ -152,8 +132,7 @@ func (ac *ArticlesController) Update(w http.ResponseWriter, r *http.Request) {
 
 		// 检查权限
 		if !policies.CanModifyArticle(_article) {
-			flash.Warning("未授权操作！")
-			http.Redirect(w, r, "/", http.StatusForbidden)
+			ac.ResponseForUnauthorized(w, r)
 		} else {
 			_article.Title = r.PostFormValue("title")
 			_article.Body  = r.PostFormValue("body")
@@ -191,28 +170,19 @@ func (ac *ArticlesController) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 // Delete 删除文章
-func (*ArticlesController) Delete(w http.ResponseWriter, r *http.Request)  {
+func (ac *ArticlesController) Delete(w http.ResponseWriter, r *http.Request)  {
 
 	id := route.GetRouteVariable("id", r)
 
 	_article, err := article.Get(id)
 
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			// 数据未找到
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, "404 文章未找到")
-		} else {
-			logger.LogError(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "500 服务器内部错误")
-		}
+		ac.ResponseForSQLError(w, err)
 	} else {
 
 		// 检查权限
 		if !policies.CanModifyArticle(_article) {
-			flash.Warning("您没有权限执行此操作！")
-			http.Redirect(w, r, "/", http.StatusFound)
+			ac.ResponseForUnauthorized(w, r)
 		} else {
 			rowsAffected, err := _article.Delete()
 
@@ -232,25 +202,4 @@ func (*ArticlesController) Delete(w http.ResponseWriter, r *http.Request)  {
 			}
 		}
 	}
-}
-
-// validateArticleFormData 验证表单数据
-func validateArticleFormData(title string, body string) map[string]string {
-	errors := make(map[string]string)
-	
-	// 验证标题
-	if title == "" {
-		errors["title"] = "标题不能为空"
-	} else if utf8.RuneCountInString(title) < 3 || utf8.RuneCountInString(title) > 40 {
-		errors["title"] = "标题长度需介于 3-40"
-	}
-	
-	// 验证内容
-	if body == "" {
-		errors["body"] = "内容长度不能为空"
-	} else if utf8.RuneCountInString(body) < 10 {
-		errors["body"] = "内容长度需大于或等于 10 个字节"
-	}
-		
-	return errors
 }
