@@ -6,7 +6,6 @@ import (
 	"goblog/app/policies"
 	"goblog/app/requests"
 	"goblog/pkg/auth"
-	"goblog/pkg/logger"
 	"goblog/pkg/route"
 	"goblog/pkg/view"
 	"net/http"
@@ -30,7 +29,6 @@ func (*ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
 	}
 
 	errors := requests.ValidateArticleForm(_article)
-	fmt.Println(errors)
 
 	// 检查是否有错误
 	if len(errors) == 0 {
@@ -82,8 +80,7 @@ func (ac *ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 func (ac *ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
 
 	// 获取结果集
-	_articles, err := article.GetAll()
-	logger.LogError(err)
+	articles, pagerData, err := article.GetAll(r, 5)
 
 	if err != nil {
 		// 数据库错误
@@ -91,7 +88,8 @@ func (ac *ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// 加载模版
 		view.Render(w, view.D{
-			"Articles": _articles,
+			"Articles": articles,
+			"PagerData": pagerData,
 		}, "articles.index", "articles._article_meta")
 	}
 }
