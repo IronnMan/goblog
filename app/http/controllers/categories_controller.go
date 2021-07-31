@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"fmt"
+	"goblog/app/models/article"
 	"goblog/app/models/category"
 	"goblog/app/requests"
+	"goblog/pkg/route"
 	"goblog/pkg/view"
 	"net/http"
 )
@@ -34,7 +36,8 @@ func (*CategoriesController) Store(w http.ResponseWriter, r *http.Request) {
 		// 创建文章分类
 		_category.Create()
 		if _category.ID > 0 {
-			fmt.Fprint(w, "创建成功！")
+			indexURL := route.Name2URL("categories.show", "id", _category.GetStringID())
+			http.Redirect(w, r, indexURL, http.StatusFound)
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, "创建文章分类失败，请联系管理员")
@@ -48,6 +51,22 @@ func (*CategoriesController) Store(w http.ResponseWriter, r *http.Request) {
 }
 
 // Show 显示分类下的文章列表
-func (*CategoriesController) Show(w http.ResponseWriter, r *http.Request) {
+func (cc *CategoriesController) Show(w http.ResponseWriter, r *http.Request) {
+	// 获取 URL 参数
+	id := route.GetRouteVariable("id", r)
 
+	// 读取对应的数据
+	_category, err := category.Get(id)
+
+	// 获取结果集
+	articles, pagerData, err := article.GetByCategoryID(_category.GetStringID(), r, 2)
+
+	if err != nil {
+		cc.ResponseForSQLError(w, err)
+	} else {
+		view.Render(w, view.D{
+			"Articles": articles,
+			"PagerData": pagerData,
+		}, "articles.index", "articles._article_meta")
+	}
 }
