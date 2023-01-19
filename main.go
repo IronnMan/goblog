@@ -42,7 +42,7 @@ func articlesCreateHandler(w http.ResponseWriter, r *http.Request) {
 </head>
 <body>
     <h1>Create article</h1>
-    <form action="%s" method="post">
+    <form action="%s?test=data" method="post">
         <p><input type="text" name="title"></p>
         <p><textarea name="body" cols="30" rows="10"></textarea></p>
         <p><button type="submit">Submit</button></p>
@@ -55,7 +55,10 @@ func articlesCreateHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Create articles store")
+	fmt.Fprintf(w, "The value of title in r.Form is: %v <br>", r.FormValue("title"))
+	fmt.Fprintf(w, "The value of title in r.PostForm is: %v <br>", r.PostFormValue("title"))
+	fmt.Fprintf(w, "The value of test in r.Form is: %v <br>", r.FormValue("test"))
+	fmt.Fprintf(w, "The value of test in r.PostForm is: %v <br>", r.PostFormValue("test"))
 }
 
 func forceHTMLMiddleware(next http.Handler) http.Handler {
