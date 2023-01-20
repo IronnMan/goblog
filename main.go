@@ -32,10 +32,41 @@ func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "404 Page not found")
 }
 
+type Article struct {
+	Title, Body string
+	ID          int64
+}
+
 func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
+	// 1. 获取 URL 参数
 	vars := mux.Vars(r)
 	id := vars["id"]
-	fmt.Fprint(w, "Article ID: "+id)
+
+	// 2. 读取对应的文章数据
+	article := Article{}
+	query := "SELECT * FROM articles WHERE id = ?"
+	err := db.QueryRow(query, id).Scan(&article.ID, &article.Title, &article.Body)
+
+	// 3. 如果出现错误
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// 数据未找到
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprint(w, "404 Article Not Found")
+		} else {
+			// 数据库错误
+			checkError(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "500 Internal Server Error")
+		}
+	} else {
+		// 4. 读取成功
+		tmpl, err := template.ParseFiles("resources/views/articles/show.gohtml")
+		checkError(err)
+
+		err = tmpl.Execute(w, article)
+		checkError(err)
+	}
 }
 
 func articlesIndexHandler(w http.ResponseWriter, r *http.Request) {
