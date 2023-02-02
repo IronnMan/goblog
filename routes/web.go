@@ -13,4 +13,6 @@ func RegisterWebRoutes(r *mux.Router) {
 	r.NotFoundHandler = http.HandlerFunc(pc.NotFound)
 	r.HandleFunc("/", pc.Home).Methods("GET").Name("home")
 	r.HandleFunc("/about", pc.About).Methods("GET").Name("about")
+	// 文章相关页面
+
 }
