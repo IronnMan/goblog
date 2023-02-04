@@ -9,10 +9,39 @@ import (
 	"gorm.io/gorm"
 	"html/template"
 	"net/http"
+	"strconv"
+	"unicode/utf8"
 )
 
 // ArticlesController 文章相关页面
 type ArticlesController struct {
+}
+
+// ArticlesFormData 创建博文表单数据
+type ArticlesFormData struct {
+	Title, Body string
+	URL         string
+	Errors      map[string]string
+}
+
+func validateArticleFormData(title string, body string) map[string]string {
+	errors := make(map[string]string)
+
+	// 验证标题
+	if title == "" {
+		errors["title"] = "The title can not be null"
+	} else if utf8.RuneCountInString(title) < 3 || utf8.RuneCountInString(title) > 40 {
+		errors["title"] = "Title length needs to be between 3-40"
+	}
+
+	// 验证内容
+	if body == "" {
+		errors["body"] = "The body can not be null"
+	} else if utf8.RuneCountInString(body) < 10 {
+		errors["body"] = "Body length needs to be greater than or equal to 10 bytes"
+	}
+
+	return errors
 }
 
 // Show 文章详情页面
@@ -67,6 +96,65 @@ func (*ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
 
 		// 3. 渲染模版，将所有文章的数据传输进去
 		err = tmpl.Execute(w, articles)
+		logger.LogError(err)
+	}
+}
+
+// Create 文章创建页面
+func (*ArticlesController) Create(w http.ResponseWriter, r *http.Request) {
+	storeURL := route.Name2URL("articles.store")
+	data := ArticlesFormData{
+		Title:  "",
+		Body:   "",
+		URL:    storeURL,
+		Errors: nil,
+	}
+	tmpl, err := template.ParseFiles("resources/views/articles/create.gohtml")
+	if err != nil {
+		panic(err)
+	}
+
+	err = tmpl.Execute(w, data)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (*ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
+
+	title := r.PostFormValue("title")
+	body := r.PostFormValue("body")
+
+	errors := validateArticleFormData(title, body)
+
+	// 解析是否有错误
+	if len(errors) == 0 {
+		_article := article.Article{
+			Title: title,
+			Body:  body,
+		}
+		_article.Create()
+
+		if _article.ID > 0 {
+			fmt.Fprint(w, "Inserted successfully with ID "+strconv.FormatUint(_article.ID, 10))
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "Failed to create an article, please contact the administrator.")
+		}
+	} else {
+		storeURL := route.Name2URL("articles.store")
+
+		data := ArticlesFormData{
+			Title:  title,
+			Body:   body,
+			URL:    storeURL,
+			Errors: errors,
+		}
+		tmpl, err := template.ParseFiles("resources/views/articles/create.gohtml")
+
+		logger.LogError(err)
+
+		err = tmpl.Execute(w, data)
 		logger.LogError(err)
 	}
 }

@@ -39,23 +39,11 @@ func (a Article) Delete() (rowsAffected int64, err error) {
 	return 0, nil
 }
 
-func articlesCreateHandler(w http.ResponseWriter, r *http.Request) {
-	storeURL, _ := router.Get("articles.store").URL()
-	data := ArticlesFormData{
-		Title:  "",
-		Body:   "",
-		URL:    storeURL,
-		Errors: nil,
-	}
-	tmpl, err := template.ParseFiles("resources/views/articles/create.gohtml")
-	if err != nil {
-		panic(err)
-	}
-
-	err = tmpl.Execute(w, data)
-	if err != nil {
-		panic(err)
-	}
+func getArticleByID(id string) (Article, error) {
+	article := Article{}
+	query := "SELECT * FROM articles WHERE id = ?"
+	err := db.QueryRow(query, id).Scan(&article.ID, &article.Title, &article.Body)
+	return article, err
 }
 
 // ArticlesFormData 创建博文表单数据
@@ -63,71 +51,6 @@ type ArticlesFormData struct {
 	Title, Body string
 	URL         *url.URL
 	Errors      map[string]string
-}
-
-func validateArticleFormData(title string, body string) map[string]string {
-	errors := make(map[string]string)
-
-	// 验证标题
-	if title == "" {
-		errors["title"] = "The title can not be null"
-	} else if utf8.RuneCountInString(title) < 3 || utf8.RuneCountInString(title) > 40 {
-		errors["title"] = "Title length needs to be between 3-40"
-	}
-
-	// 验证内容
-	if body == "" {
-		errors["body"] = "The body can not be null"
-	} else if utf8.RuneCountInString(body) < 10 {
-		errors["body"] = "Body length needs to be greater than or equal to 10 bytes"
-	}
-
-	return errors
-}
-
-func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
-
-	title := r.PostFormValue("title")
-	body := r.PostFormValue("body")
-
-	errors := validateArticleFormData(title, body)
-
-	// 解析是否有错误
-	if len(errors) == 0 {
-		lastInsertID, err := saveArticleToDB(title, body)
-		if lastInsertID > 0 {
-			fmt.Fprint(w, "Inserted successfully with ID "+strconv.FormatInt(lastInsertID, 10))
-		} else {
-			logger.LogError(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "500 Internal Server Error")
-		}
-	} else {
-		storeURL, _ := router.Get("articles.store").URL()
-
-		data := ArticlesFormData{
-			Title:  title,
-			Body:   body,
-			URL:    storeURL,
-			Errors: errors,
-		}
-		tmpl, err := template.ParseFiles("resources/views/articles/create.gohtml")
-		if err != nil {
-			panic(err)
-		}
-
-		err = tmpl.Execute(w, data)
-		if err != nil {
-			panic(err)
-		}
-	}
-}
-
-func getArticleByID(id string) (Article, error) {
-	article := Article{}
-	query := "SELECT * FROM articles WHERE id = ?"
-	err := db.QueryRow(query, id).Scan(&article.ID, &article.Title, &article.Body)
-	return article, err
 }
 
 func articlesEditHandler(w http.ResponseWriter, r *http.Request) {
@@ -164,6 +87,25 @@ func articlesEditHandler(w http.ResponseWriter, r *http.Request) {
 		err = tmpl.Execute(w, data)
 		logger.LogError(err)
 	}
+}
+func validateArticleFormData(title string, body string) map[string]string {
+	errors := make(map[string]string)
+
+	// 验证标题
+	if title == "" {
+		errors["title"] = "The title can not be null"
+	} else if utf8.RuneCountInString(title) < 3 || utf8.RuneCountInString(title) > 40 {
+		errors["title"] = "Title length needs to be between 3-40"
+	}
+
+	// 验证内容
+	if body == "" {
+		errors["body"] = "The body can not be null"
+	} else if utf8.RuneCountInString(body) < 10 {
+		errors["body"] = "Body length needs to be greater than or equal to 10 bytes"
+	}
+
+	return errors
 }
 
 func articlesUpdateHandler(w http.ResponseWriter, r *http.Request) {
@@ -339,8 +281,6 @@ func main() {
 	bootstrap.SetupDB()
 	router = bootstrap.SetupRoute()
 
-	router.HandleFunc("/articles/create", articlesCreateHandler).Methods("GET").Name("articles.create")
-	router.HandleFunc("/articles", articlesStoreHandler).Methods("POST").Name("articles.store")
 	router.HandleFunc("/articles/{id:[0-9]+}/edit", articlesEditHandler).Methods("GET").Name("articles.edit")
 	router.HandleFunc("/articles/{id:[0-9]+}", articlesUpdateHandler).Methods("POST").Name("articles.update")
 	router.HandleFunc("/articles/{id:[0-9]+}/delete", articlesDeleteHandler).Methods("POST").Name("articles.delete")
