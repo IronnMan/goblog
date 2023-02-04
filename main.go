@@ -7,7 +7,6 @@ import (
 	"goblog/bootstrap"
 	"goblog/pkg/database"
 	"goblog/pkg/logger"
-	"html/template"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -53,41 +52,6 @@ type ArticlesFormData struct {
 	Errors      map[string]string
 }
 
-func articlesEditHandler(w http.ResponseWriter, r *http.Request) {
-	// 1. 获取 URL 参数
-	id := getRouteVariable("id", r)
-
-	// 2. 读取对应的文章数据
-	article, err := getArticleByID(id)
-
-	// 3. 如果出现错误
-	if err != nil {
-		if err == sql.ErrNoRows {
-			// 数据未找到
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, "404 Article Not Found")
-		} else {
-			// 数据库错误
-			logger.LogError(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "500 Internal Server Error")
-		}
-	} else {
-		// 4. 读取成功，显示表单
-		updateURL, _ := router.Get("articles.update").URL("id", id)
-		data := ArticlesFormData{
-			Title:  article.Title,
-			Body:   article.Body,
-			URL:    updateURL,
-			Errors: nil,
-		}
-		tmpl, err := template.ParseFiles("resources/views/articles/edit.gohtml")
-		logger.LogError(err)
-
-		err = tmpl.Execute(w, data)
-		logger.LogError(err)
-	}
-}
 func validateArticleFormData(title string, body string) map[string]string {
 	errors := make(map[string]string)
 
@@ -106,70 +70,6 @@ func validateArticleFormData(title string, body string) map[string]string {
 	}
 
 	return errors
-}
-
-func articlesUpdateHandler(w http.ResponseWriter, r *http.Request) {
-	// 1. 获取 URL 参数
-	id := getRouteVariable("id", r)
-
-	// 2. 读取对应的文章数据
-	_, err := getArticleByID(id)
-
-	// 3. 如果出现错误
-	if err != nil {
-		if err == sql.ErrNoRows {
-			// 数据未找到
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, "404 Article Not Found")
-		} else {
-			// 数据库错误
-			logger.LogError(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "500 Internal Server Error")
-		}
-	} else {
-		// 4. 未出现错误
-
-		// 表单验证
-		title := r.PostFormValue("title")
-		body := r.PostFormValue("body")
-
-		errors := validateArticleFormData(title, body)
-
-		if len(errors) == 0 {
-			// 表单验证通过，更新数据
-			query := "UPDATE articles SET title = ?, body = ? WHERE id = ?"
-			rs, err := db.Exec(query, title, body, id)
-
-			if err != nil {
-				logger.LogError(err)
-				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprint(w, "500 Internal Server Error")
-			}
-
-			// 更新成功，跳转到文章详情页
-			if n, _ := rs.RowsAffected(); n > 0 {
-				showURL, _ := router.Get("articles.show").URL("id", id)
-				http.Redirect(w, r, showURL.String(), http.StatusFound)
-			} else {
-				fmt.Fprint(w, "You didn't make any changes!")
-			}
-		} else {
-			// 表单验证不通过，显示理由
-			updateURL, _ := router.Get("articles.update").URL("id", id)
-			data := ArticlesFormData{
-				Title:  title,
-				Body:   body,
-				URL:    updateURL,
-				Errors: errors,
-			}
-			tmpl, err := template.ParseFiles("resources/views/articles/edit.gohtml")
-			logger.LogError(err)
-
-			err = tmpl.Execute(w, data)
-			logger.LogError(err)
-		}
-	}
 }
 
 func articlesDeleteHandler(w http.ResponseWriter, r *http.Request) {
@@ -281,8 +181,6 @@ func main() {
 	bootstrap.SetupDB()
 	router = bootstrap.SetupRoute()
 
-	router.HandleFunc("/articles/{id:[0-9]+}/edit", articlesEditHandler).Methods("GET").Name("articles.edit")
-	router.HandleFunc("/articles/{id:[0-9]+}", articlesUpdateHandler).Methods("POST").Name("articles.update")
 	router.HandleFunc("/articles/{id:[0-9]+}/delete", articlesDeleteHandler).Methods("POST").Name("articles.delete")
 
 	// 中间件：强制内容类型为 HTML

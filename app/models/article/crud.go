@@ -35,3 +35,14 @@ func (a *Article) Create() (err error) {
 
 	return nil
 }
+
+// Update 更新文章
+func (a *Article) Update() (rowsAffected int64, err error) {
+	result := model.DB.Save(&a)
+	if err = result.Error; err != nil {
+		logger.LogError(err)
+		return 0, err
+	}
+
+	return result.RowsAffected, err
+}
