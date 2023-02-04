@@ -2,6 +2,7 @@ package route
 
 import (
 	"github.com/gorilla/mux"
+	"goblog/pkg/logger"
 	"net/http"
 )
 
@@ -14,10 +15,9 @@ func SetRoute(r *mux.Router) {
 
 // Name2URL 通过路由名称来获取 URL
 func Name2URL(routeName string, pairs ...string) string {
-	var route *mux.Router
 	url, err := route.Get(routeName).URL(pairs...)
 	if err != nil {
-		// checkError(err)
+		logger.LogError(err)
 		return ""
 	}
 
