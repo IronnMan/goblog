@@ -14,10 +14,7 @@
 
         {{ .Body }}
 
-        {{/* 构建删除按钮 */}}
-        {{ $idString := Uint64ToString .ID }}
-
-      <form action="{{ RouteName2URL "articles.delete" "id" $idString }}" method="post">
+      <form action="{{ RouteName2URL "articles.delete" "id" .GetStringID }}" method="post">
         <button type="submit"
                 onclick="return confirm('The delete action is irreversible, please confirm whether to continue!')">
           Delete
