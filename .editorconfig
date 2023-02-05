@@ -1,0 +1,13 @@
+; https://editorconfig.org/
+
+root = true
+
+[*.gohtml]
+; Set file encoding
+charset = utf-8
+; Remove extra spaces at the end of the file
+trim_trailing_whitespace = true
+; Space indentation
+indent_style = space
+; Indent length is two spaces
+indent_size = 2
