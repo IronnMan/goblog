@@ -5,19 +5,13 @@ import (
 	"goblog/app/models/user"
 	"goblog/app/requests"
 	"goblog/pkg/auth"
+	"goblog/pkg/flash"
 	"goblog/pkg/view"
 	"net/http"
 )
 
 // AuthController 处理用户认证
 type AuthController struct {
-}
-
-type userForm struct {
-	Name            string `valid:"name"`
-	Email           string `valid:"email"`
-	Password        string `valid:"password"`
-	PasswordConfirm string `valid:"password_confirm"`
 }
 
 // Register 注册页面
@@ -50,6 +44,7 @@ func (*AuthController) DoRegister(w http.ResponseWriter, r *http.Request) {
 
 		if _user.ID > 0 {
 			// 登录用户并跳转到首页
+			flash.Success("Congratulations on your successful registration!")
 			auth.Login(_user)
 			http.Redirect(w, r, "/", http.StatusFound)
 		} else {
@@ -73,6 +68,7 @@ func (*AuthController) DoLogin(w http.ResponseWriter, r *http.Request) {
 	// 2. 尝试登录
 	if err := auth.Attempt(email, password); err == nil {
 		// 登录成功
+		flash.Success("Welcome back!")
 		http.Redirect(w, r, "/", http.StatusFound)
 	} else {
 		// 3. 失败，显示错误提示
@@ -87,5 +83,6 @@ func (*AuthController) DoLogin(w http.ResponseWriter, r *http.Request) {
 // Logout 退出登录
 func (*AuthController) Logout(w http.ResponseWriter, r *http.Request) {
 	auth.Logout()
+	flash.Success("You are logged out!")
 	http.Redirect(w, r, "/", http.StatusFound)
 }
