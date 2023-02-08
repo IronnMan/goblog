@@ -9,31 +9,10 @@ import (
 	"goblog/pkg/view"
 	"gorm.io/gorm"
 	"net/http"
-	"unicode/utf8"
 )
 
 // ArticlesController 文章相关页面
 type ArticlesController struct {
-}
-
-func validateArticleFormData(title string, body string) map[string]string {
-	errors := make(map[string]string)
-
-	// 验证标题
-	if title == "" {
-		errors["title"] = "The title can not be null"
-	} else if utf8.RuneCountInString(title) < 3 || utf8.RuneCountInString(title) > 40 {
-		errors["title"] = "Title length needs to be between 3-40"
-	}
-
-	// 验证内容
-	if body == "" {
-		errors["body"] = "The body can not be null"
-	} else if utf8.RuneCountInString(body) < 10 {
-		errors["body"] = "Body length needs to be greater than or equal to 10 bytes"
-	}
-
-	return errors
 }
 
 // Show 文章详情页面
