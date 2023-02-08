@@ -10,13 +10,13 @@
         <div class="blog-post bg-white p-5 rounded shadow mb-4">
           <h3 class="blog-post-title">
             <a href="{{ $article.Link }}" class="text-dark text-decoration-none">{{ $article.Title }}</a>
-            <p class="blog-post-meta text-secondary">
-              Posted on <a href="#" class="font-weight-bold">2023</a>
-
-            <hr>
-              {{ $article.Body }}
-            </p>
           </h3>
+
+            {{template "article-meta" $article}}
+
+          <hr>
+            {{ $article.Body }}
+
         </div>
       {{ end }}
 

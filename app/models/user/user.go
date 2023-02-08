@@ -15,6 +15,12 @@ type User struct {
 	PasswordConfirm string `gorm:"-" valid:"password_confirm"`
 }
 
+// ComparePassword 方法用来验证用户密码 hash 值
 func (u *User) ComparePassword(_password string) bool {
 	return password.CheckHash(_password, u.Password)
+}
+
+// Link 方法用来生成用户链接
+func (u *User) Link() string {
+	return ""
 }
