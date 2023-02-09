@@ -8,6 +8,9 @@ func init() {
 		// 应用名称
 		"name": config.Env("APP_NAME", "GoBlog"),
 
+		// URL
+		"url": config.Env("APP_URL", "http://localhost:3000"),
+
 		// 当前环境，用以区分多环境
 		"env": config.Env("APP_ENV", "production"),
 

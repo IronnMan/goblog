@@ -5,24 +5,32 @@
 {{define "main"}}
   <div class="col-md-9 blog-main">
 
-      {{ range $key, $article := .Articles }}
+      {{if .Articles }}
 
-        <div class="blog-post bg-white p-5 rounded shadow mb-4">
-          <h3 class="blog-post-title">
-            <a href="{{ $article.Link }}" class="text-dark text-decoration-none">{{ $article.Title }}</a>
-          </h3>
+          {{range $key, $article := .Articles }}
 
-            {{template "article-meta" $article}}
+            <div class="blog-post bg-white p-5 rounded shadow mb-4">
+              <h3 class="blog-post-title">
+                <a href="{{ $article.Link }}" class="text-dark text-decoration-none">{{ $article.Title }}</a> -- ID: {{ $article.ID }}
+              </h3>
 
-          <hr>
-            {{ $article.Body }}
+                {{template "article-meta" $article}}
 
+              <hr>
+                {{ $article.Body }}
+
+            </div>
+          {{ end }}
+
+      {{else}}
+
+        <div class="blog-post bg-white p-5 rounded shadow mb-4 text-muted">
+          <p>No articles yet!</p>
         </div>
-      {{ end }}
 
-    <nav class="blog-pagination mb-5">
-      <a href="#" class="btn btn-outline-primary">Previous</a>
-      <a href="#" class="btn btn-outline-secondary disabled" tabindex="-1" aria-disabled="true">Next</a>
-    </nav>
+      {{end}}
+
+      <!-- Paging -->
+      {{template "pagination" .PagerData }}
   </div>
 {{end}}

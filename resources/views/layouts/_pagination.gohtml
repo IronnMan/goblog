@@ -1,0 +1,19 @@
+{{define "pagination"}}
+
+    {{if .HasPages }}
+      <nav class="blog-pagination mb-5">
+
+          {{if .HasPrev }}
+            <a href="{{ .Prev.URL }}" class="btn btn-outline-primary" tabindex="-1" aria-disabled="true">Previous</a>
+          {{else}}
+            <a href="#" class="btn btn-outline-secondary disabled" tabindex="-1" aria-disabled="true">Previous</a>
+          {{end}}
+
+          {{if .HasNext }}
+            <a href="{{ .Next.URL }}" class="btn btn-outline-primary" tabindex="-1" aria-disabled="true">Next</a>
+          {{else}}
+            <a href="#" class="btn btn-outline-secondary disabled" tabindex="-1" aria-disabled="true">Next</a>
+          {{end}}
+      </nav>
+    {{end}}
+{{end}}
